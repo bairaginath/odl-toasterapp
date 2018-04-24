@@ -18,4 +18,5 @@
           init-method="init" destroy-method="close">
     <property name="dataBroker" ref="dataBroker"/>
   </bean>
+  <odl:rpc-implementation ref="toaster"/>
 </blueprint>
