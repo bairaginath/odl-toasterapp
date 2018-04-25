@@ -7,27 +7,39 @@
  */
 package org.opendaylight.controller.sample.toaster.provider;
 
+import static org.opendaylight.controller.md.sal.binding.api.DataObjectModification.ModificationType.DELETE;
+import static org.opendaylight.controller.md.sal.binding.api.DataObjectModification.ModificationType.WRITE;
 import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
 import static org.opendaylight.yangtools.yang.common.RpcError.ErrorType.APPLICATION;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
+import org.opendaylight.controller.md.sal.binding.api.DataObjectModification;
+import org.opendaylight.controller.md.sal.binding.api.DataTreeChangeListener;
+import org.opendaylight.controller.md.sal.binding.api.DataTreeModification;
+import org.opendaylight.controller.md.sal.binding.api.NotificationPublishService;
 import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
 import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 import org.opendaylight.controller.md.sal.common.api.data.OptimisticLockFailedException;
 import org.opendaylight.controller.md.sal.common.api.data.TransactionCommitFailedException;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.DisplayString;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.MakeToastInput;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.RestockToasterInput;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.Toaster;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.Toaster.ToasterStatus;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterBuilder;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterOutOfBreadBuilder;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterRestocked;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterRestockedBuilder;
 import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterService;
 //import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.toaster.rev091120.ToasterOutOfBreadBuilder;
-
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcError;
 import org.opendaylight.yangtools.yang.common.RpcError.ErrorType;
@@ -46,7 +58,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 
 
-public class OpendaylightToaster implements ToasterService, AutoCloseable {
+public class OpendaylightToaster implements ToasterService,DataTreeChangeListener<Toaster>,ToasterProviderRuntimeMXBean, AutoCloseable {
 	  
 	   private static final InstanceIdentifier<Toaster> TOASTER_IID = InstanceIdentifier.builder(Toaster.class).build();
 	   private static final DisplayString TOASTER_MANUFACTURER = new DisplayString("Opendaylight");
@@ -55,17 +67,27 @@ public class OpendaylightToaster implements ToasterService, AutoCloseable {
 	   private static final Logger LOG = LoggerFactory.getLogger(OpendaylightToaster.class);
 	   private DataBroker dataBroker;
 	   
+	   private final ExecutorService executor;
+	   
 	   private final AtomicReference<Future<?>> currentMakeToastTask = new AtomicReference<>();
 	   private final AtomicLong amountOfBreadInStock = new AtomicLong(100);
 	    private final AtomicLong toastsMade = new AtomicLong(0);
 	    private final AtomicLong darknessFactor = new AtomicLong(1000);
-	   public OpendaylightToaster() {
+	   
+	    private NotificationPublishService notificationProvider;
+	    
+	    
+	    public OpendaylightToaster() {
+		   executor = Executors.newFixedThreadPool(1);
 	   }
 	   
 	   
 	   
 	   public void setDataBroker(final DataBroker dataBroker) {
 	       this.dataBroker = dataBroker;
+	   }
+	   public void setNotificationProvider(final NotificationPublishService notificationPublishService) {
+	       this.notificationProvider = notificationPublishService;
 	   }
 	  
 	   public void init() {
@@ -198,7 +220,7 @@ public class OpendaylightToaster implements ToasterService, AutoCloseable {
             @Override
             public void onSuccess(final Void result) {
                 // OK to make toast
-                //currentMakeToastTask.set(executor.submit(new MakeToastTask(input, futureResult)));
+                currentMakeToastTask.set(executor.submit(new MakeToastTask(input, futureResult)));
             }
 
             @Override
@@ -243,8 +265,106 @@ public class OpendaylightToaster implements ToasterService, AutoCloseable {
 	private RpcError makeToasterInUseError() {
         return RpcResultBuilder.newWarning(APPLICATION, "in-use", "Toaster is busy", null, null, null);
     }
+
+
+
+	@Override
+	public void onDataTreeChanged(Collection<DataTreeModification<Toaster>> changes) {
+		for (DataTreeModification<Toaster> change: changes) {
+            DataObjectModification<Toaster> rootNode = change.getRootNode();
+            if (rootNode.getModificationType() == WRITE) {
+                Toaster oldToaster = rootNode.getDataBefore();
+                Toaster newToaster = rootNode.getDataAfter();
+                LOG.info("onDataTreeChanged - Toaster config with path {} was added or replaced: "
+                        + "old Toaster: {}, new Toaster: {}", change.getRootPath().getRootIdentifier(),
+                        oldToaster, newToaster);
+
+                Long darkness = newToaster.getDarknessFactor();
+                if (darkness != null) {
+                    darknessFactor.set(darkness);
+                }
+            } else if (rootNode.getModificationType() == DELETE) {
+                LOG.info("onDataTreeChanged - Toaster config with path {} was deleted: old Toaster: {}",
+                        change.getRootPath().getRootIdentifier(), rootNode.getDataBefore());
+            }
+        }
+	}
 	
 	
+	private class MakeToastTask implements Callable<Void> {
+
+        final MakeToastInput toastRequest;
+        final SettableFuture<RpcResult<Void>> futureResult;
+
+        MakeToastTask(final MakeToastInput toastRequest, final SettableFuture<RpcResult<Void>> futureResult) {
+            this.toastRequest = toastRequest;
+            this.futureResult = futureResult;
+        }
+
+        @Override
+        public Void call() {
+            try {
+                // make toast just sleeps for n seconds per doneness level.
+                Thread.sleep(OpendaylightToaster.this.darknessFactor.get() * toastRequest.getToasterDoneness());
+
+            } catch (InterruptedException e) {
+                LOG.info("Interrupted while making the toast");
+            }
+
+            toastsMade.incrementAndGet();
+
+            amountOfBreadInStock.getAndDecrement();
+            if (outOfBread()) {
+                LOG.info("Toaster is out of bread!");
+
+                notificationProvider.offerNotification(new ToasterOutOfBreadBuilder().build());
+            }
+
+            // Set the Toaster status back to up - this essentially releases the toasting lock.
+            // We can't clear the current toast task nor set the Future result until the
+            // update has been committed so we pass a callback to be notified on completion.
+
+            setToasterStatusUp(result -> {
+                currentMakeToastTask.set(null);
+                LOG.debug("Toast done");
+                futureResult.set(RpcResultBuilder.<Void>success().build());
+                return null;
+            });
+
+            return null;
+        }
+    }
+
+
+	
+	@Override
+	public Long getToastsMade() {
+		return toastsMade.get();
+	}
+
+
+	@Override
+	public void clearToastsMade() {
+		LOG.info("clearToastsMade");
+        toastsMade.set(0);
+	}
+
+
+
+	@Override
+	public Future<RpcResult<Void>> restockToaster(RestockToasterInput input) {
+		LOG.info("restockToaster: " + input);
+
+        amountOfBreadInStock.set(input.getAmountOfBreadToStock());
+
+        if (amountOfBreadInStock.get() > 0) {
+            ToasterRestocked reStockedNotification = new ToasterRestockedBuilder()
+                    .setAmountOfBread(input.getAmountOfBreadToStock()).build();
+            notificationProvider.offerNotification(reStockedNotification);
+        }
+
+        return Futures.immediateFuture(RpcResultBuilder.<Void>success().build());
+	}
 	
 	
 	

@@ -17,6 +17,7 @@
   <bean id="toaster" class="org.opendaylight.controller.sample.toaster.provider.OpendaylightToaster"
           init-method="init" destroy-method="close">
     <property name="dataBroker" ref="dataBroker"/>
+    <property name="notificationProvider" ref="notificationService"/>
   </bean>
   <odl:rpc-implementation ref="toaster"/>
 </blueprint>
