@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!--<parent>   
+    <groupId>org.opendaylight.odlparent</groupId>
+    <artifactId>karaf4-parent</artifactId>
+    <version>3.1.0</version>
+    <relativePath/>
+  </parent> -->
+
+  <groupId>org.quantum.toaster</groupId>
+  <artifactId>opendaylight-karaf</artifactId>
+  <version>0.8.1</version>
+  <packaging>pom</packaging>
+  
+
+ 
+<build>
+<plugins>
+  <plugin>
+
+  <groupId>com.googlecode.maven-download-plugin</groupId>
+  <artifactId>download-maven-plugin</artifactId>
+  <version>1.3.0</version>
+  <executions>
+    <execution>
+      <!-- the wget goal actually binds itself to this phase by default -->
+      <phase>process-resources</phase>
+      <goals>
+        <goal>wget</goal>
+      </goals>
+      <configuration>
+        <url>https://nexus.opendaylight.org/content/repositories/public/org/opendaylight/integration/karaf/0.8.1/karaf-0.8.1.zip</url>
+       
+        <!-- default target location, just to demonstrate the parameter -->
+        <outputDirectory>${project.build.directory}</outputDirectory>
+      </configuration>
+    </execution>
+  </executions>
+
+
+   
+</plugin>
+</plugins>
+</build>
+  <scm>
+    <connection>scm:git:http://git.opendaylight.org/gerrit/controller.git</connection>
+    <developerConnection>scm:git:ssh://git.opendaylight.org:29418/controller.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://wiki.opendaylight.org/view/OpenDaylight_Controller:Main</url>
+  </scm>
+</project>
