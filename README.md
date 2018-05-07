@@ -11,11 +11,9 @@ to get distribute-opendaylight-karaf , mvn clean install
 5) cd odl-toasterapp
 6) mvn clean install
 7) run ODL-cli , odl-toasterapp/karaf/target/karaf-0.7.2/bin/karaf
-8) install feature repo , 
+8) feature:install odl-restconf-all
+9) feature:install odl-mdsal-apidocs
+10) install feature repo , 
        feature:repo-add mvn:com.quantum.toaster/quantum-toaster/1.6.2/xml/features
-9) install feature ,  
+11) install feature ,  
        feature:install quantum-toaster
-10) apidoc feature 
-       feature:install odl-mdsal-apidocs
- 11) restconf features
-      feature:install odl-restconf-all
