@@ -15,3 +15,7 @@ to get distribute-opendaylight-karaf , mvn clean install
        feature:repo-add mvn:com.quantum.toaster/quantum-toaster/1.6.2/xml/features
 9) install feature ,  
        feature:install quantum-toaster
+10) apidoc feature 
+       feature:install odl-mdsal-apidocs
+ 11) restconf features
+      feature:install odl-restconf-all
