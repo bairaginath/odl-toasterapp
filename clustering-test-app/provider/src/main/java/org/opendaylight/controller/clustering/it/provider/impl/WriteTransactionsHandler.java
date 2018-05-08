@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SplittableRandom;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncTransaction;
@@ -160,8 +159,8 @@ public abstract class WriteTransactionsHandler extends AbstractTransactionHandle
         tx.merge(LogicalDatastoreType.CONFIGURATION, idListItem, entry);
 
         try {
-            tx.submit().get(INIT_TX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            tx.submit().checkedGet(INIT_TX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (final Exception e) {
             LOG.warn("Unable to ensure IdInts list for id: {} exists.", id, e);
             return Futures.immediateFuture(RpcResultBuilder.<WriteTransactionsOutput>failed()
                     .withError(RpcError.ErrorType.APPLICATION, "Unexpected-exception", e).build());
@@ -176,8 +175,8 @@ public abstract class WriteTransactionsHandler extends AbstractTransactionHandle
         tx.put(LogicalDatastoreType.CONFIGURATION, itemListId, mapBuilder.build());
 
         try {
-            tx.submit().get(INIT_TX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            tx.submit().checkedGet(INIT_TX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (final Exception e) {
             LOG.warn("Unable to fill the initial item list.", e);
             return Futures.immediateFuture(RpcResultBuilder.<WriteTransactionsOutput>failed()
                     .withError(RpcError.ErrorType.APPLICATION, "Unexpected-exception", e).build());

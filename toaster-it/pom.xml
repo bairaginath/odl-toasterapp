@@ -5,29 +5,34 @@
   <parent>
     <groupId>org.opendaylight.controller</groupId>
     <artifactId>mdsal-it-parent</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.6.2</version>
     <relativePath>../../mdsal-it-parent</relativePath>
   </parent>
-  <artifactId>sample-toaster-it</artifactId>
+  <groupId>com.quantum.toaster</groupId>
+  <artifactId>quantum-toaster-it</artifactId>
 
   <dependencies>
     <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>features-mdsal</artifactId>
+      <groupId>com.quantum.toaster</groupId>
+      <artifactId>quantum-toaster</artifactId>
       <classifier>features</classifier>
+      <version>1.6.2</version>
       <type>xml</type>
     </dependency>
     <dependency>
-      <groupId>org.opendaylight.controller.samples</groupId>
-      <artifactId>sample-toaster</artifactId>
+      <groupId>com.quantum.toaster</groupId>
+      <artifactId>main-toaster</artifactId>
+      <version>1.6.2</version>
     </dependency>
     <dependency>
-      <groupId>org.opendaylight.controller.samples</groupId>
-      <artifactId>sample-toaster-consumer</artifactId>
+      <groupId>com.quantum.toaster</groupId>
+      <artifactId>toaster-consumer</artifactId>
+      <version>1.6.2</version>
     </dependency>
     <dependency>
-      <groupId>org.opendaylight.controller.samples</groupId>
-      <artifactId>sample-toaster-provider</artifactId>
+      <groupId>com.quantum.toaster</groupId>
+      <artifactId>toaster-provider</artifactId>
+      <version>1.6.2</version>
     </dependency>
   </dependencies>
 </project>

@@ -9,7 +9,6 @@
 package org.opendaylight.controller.clustering.it.provider;
 
 import com.google.common.util.concurrent.SettableFuture;
-import java.util.concurrent.Future;
 import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.config.sal.clustering.it.car.purchase.rev140818.BuyCarInput;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.config.sal.clustering.it.car.purchase.rev140818.CarBoughtBuilder;
@@ -19,31 +18,35 @@ import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PurchaseCarProvider implements CarPurchaseService, AutoCloseable {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PurchaseCarProvider.class);
-
-    private NotificationProviderService notificationProvider;
+import java.util.concurrent.Future;
 
 
-    public void setNotificationProvider(final NotificationProviderService salService) {
-        this.notificationProvider = salService;
-    }
+public class PurchaseCarProvider implements CarPurchaseService, AutoCloseable{
+
+  private static final Logger LOG = LoggerFactory.getLogger(PurchaseCarProvider.class);
+
+  private NotificationProviderService notificationProvider;
 
 
-    @Override
-    public Future<RpcResult<Void>> buyCar(BuyCarInput input) {
-        LOG.info("Routed RPC buyCar : generating notification for buying car [{}]", input);
-        final SettableFuture<RpcResult<Void>> futureResult = SettableFuture.create();
-        CarBoughtBuilder carBoughtBuilder = new CarBoughtBuilder();
-        carBoughtBuilder.setCarId(input.getCarId());
-        carBoughtBuilder.setPersonId(input.getPersonId());
-        notificationProvider.publish(carBoughtBuilder.build());
-        futureResult.set(RpcResultBuilder.<Void>success().build());
-        return futureResult;
-    }
+  public void setNotificationProvider(final NotificationProviderService salService) {
+    this.notificationProvider = salService;
+  }
 
-    @Override
-    public void close() {
-    }
+
+  @Override
+  public Future<RpcResult<Void>> buyCar(BuyCarInput input) {
+    LOG.info("Routed RPC buyCar : generating notification for buying car [{}]", input);
+    SettableFuture<RpcResult<Void>> futureResult = SettableFuture.create();
+    CarBoughtBuilder carBoughtBuilder = new CarBoughtBuilder();
+    carBoughtBuilder.setCarId(input.getCarId());
+    carBoughtBuilder.setPersonId(input.getPersonId());
+    notificationProvider.publish(carBoughtBuilder.build());
+    futureResult.set(RpcResultBuilder.<Void>success().build());
+    return futureResult;
+  }
+
+  @Override
+  public void close() throws Exception {
+
+  }
 }

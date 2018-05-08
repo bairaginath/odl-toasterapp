@@ -12,9 +12,10 @@
     <parent>
         <artifactId>clustering-it</artifactId>
         <groupId>org.opendaylight.controller.samples</groupId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>1.6.2</version>
     </parent>
     <artifactId>clustering-it-config</artifactId>
+    <groupId>com.quantum.toaster</groupId>
   <packaging>jar</packaging>
   <build>
     <plugins>

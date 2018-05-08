@@ -33,18 +33,20 @@ public class ToasterTest extends AbstractMdsalTestBase {
 
     @Override
     public MavenUrlReference getFeatureRepo() {
-        return maven().groupId("org.opendaylight.controller").artifactId("features-mdsal").classifier("features")
+        return maven().groupId("com.quantum.toaster").artifactId("quantum-toaster").classifier("features")
                 .type("xml").versionAsInProject();
     }
 
     @Override
     public String getFeatureName() {
-        return "odl-toaster";
+        return "quantum-toaster";
     }
 
     @Test
     public void testToaster() throws Exception {
         MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+        System.out.println(platformMBeanServer);
+        //https://github.com/opendaylight/controller/blob/e2607370f5ac443a5a2f1f00f693f82a0b57161d/opendaylight/md-sal/sal-common-util/src/main/java/org/opendaylight/controller/md/sal/common/util/jmx/AbstractMXBean.java#L41
         ObjectName providerOn = new ObjectName("org.opendaylight.controller:name=OpendaylightToaster,type=toaster-provider");
 
         long toastsMade = (long) platformMBeanServer.getAttribute(providerOn, "ToastsMade");

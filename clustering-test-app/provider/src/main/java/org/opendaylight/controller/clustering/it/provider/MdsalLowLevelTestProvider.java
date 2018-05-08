@@ -21,6 +21,8 @@ import com.google.common.base.Strings;
 import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -135,8 +137,8 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
     private final DOMDataTreeChangeService domDataTreeChangeService;
     private final ActorSystem actorSystem;
 
-    private final Map<InstanceIdentifier<?>, DOMRpcImplementationRegistration<RoutedGetConstantService>>
-            routedRegistrations = new HashMap<>();
+    private final Map<InstanceIdentifier<?>, DOMRpcImplementationRegistration<RoutedGetConstantService>> routedRegistrations =
+            new HashMap<>();
 
     private final Map<String, ListenerRegistration<YnlListener>> ynlRegistrations = new HashMap<>();
 
@@ -188,14 +190,13 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
     }
 
     @Override
-    @SuppressWarnings("checkstyle:IllegalCatch")
     public Future<RpcResult<Void>> unregisterSingletonConstant() {
         LOG.debug("unregister-singleton-constant");
 
         if (getSingletonConstantRegistration == null) {
             LOG.debug("No get-singleton-constant registration present.");
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "missing-registration",
-                    "No get-singleton-constant rpc registration present.");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "missing-registration", "No get-singleton-constant rpc registration present.");
             final RpcResult<Void> result = RpcResultBuilder.<Void>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
         }
@@ -205,10 +206,10 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
             getSingletonConstantRegistration = null;
 
             return Futures.immediateFuture(RpcResultBuilder.<Void>success().build());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOG.debug("There was a problem closing the singleton constant service", e);
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "error-closing",
-                    "There was a problem closing get-singleton-constant");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "error-closing", "There was a problem closing get-singleton-constant");
             final RpcResult<Void> result = RpcResultBuilder.<Void>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
         }
@@ -299,18 +300,18 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
     public Future<RpcResult<Void>> unregisterBoundConstant(final UnregisterBoundConstantInput input) {
         LOG.debug("unregister-bound-constant, {}", input);
 
-        final DOMRpcImplementationRegistration<RoutedGetConstantService> rpcRegistration =
+        final DOMRpcImplementationRegistration<RoutedGetConstantService> registration =
                 routedRegistrations.remove(input.getContext());
 
-        if (rpcRegistration == null) {
+        if (registration == null) {
             LOG.debug("No get-contexted-constant registration for context: {}", input.getContext());
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "missing-registration",
-                    "No get-constant rpc registration present.");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "missing-registration", "No get-constant rpc registration present.");
             final RpcResult<Void> result = RpcResultBuilder.<Void>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
         }
 
-        rpcRegistration.close();
+        registration.close();
         return Futures.immediateFuture(RpcResultBuilder.<Void>success().build());
     }
 
@@ -340,8 +341,8 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
     public Future<RpcResult<Void>> unregisterConstant() {
 
         if (globalGetConstantRegistration == null) {
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "missing-registration",
-                    "No get-constant rpc registration present.");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "missing-registration", "No get-constant rpc registration present.");
             final RpcResult<Void> result = RpcResultBuilder.<Void>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
         }
@@ -357,8 +358,8 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
         LOG.debug("unregister-flapping-singleton received.");
 
         if (flappingSingletonService == null) {
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "missing-registration",
-                    "No flapping-singleton registration present.");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "missing-registration", "No flapping-singleton registration present.");
             final RpcResult<UnregisterFlappingSingletonOutput> result =
                     RpcResultBuilder.<UnregisterFlappingSingletonOutput>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
@@ -390,10 +391,11 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
         idIntsDdtl = new IdIntsDOMDataTreeLIstener();
 
         try {
-            ddtlReg = domDataTreeService.registerListener(idIntsDdtl,
-                    Collections.singleton(new DOMDataTreeIdentifier(LogicalDatastoreType.CONFIGURATION,
-                            ProduceTransactionsHandler.ID_INT_YID)),
-                    true, Collections.emptyList());
+            ddtlReg =
+                    domDataTreeService.registerListener(idIntsDdtl,
+                            Collections.singleton(new DOMDataTreeIdentifier(LogicalDatastoreType.CONFIGURATION,
+                                    ProduceTransactionsHandler.ID_INT_YID))
+                            , true, Collections.emptyList());
         } catch (DOMDataTreeLoopException e) {
             LOG.error("Failed to register DOMDataTreeListener.", e);
 
@@ -424,11 +426,11 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
             return Futures.immediateFuture(RpcResultBuilder.<Void>failed().withRpcError(error).build());
         }
 
-        final DOMRpcImplementationRegistration<RoutedGetConstantService> rpcRegistration =
+        final DOMRpcImplementationRegistration<RoutedGetConstantService> registration =
                 RoutedGetConstantService.registerNew(bindingNormalizedNodeSerializer, domRpcService,
                         input.getConstant(), input.getContext());
 
-        routedRegistrations.put(input.getContext(), rpcRegistration);
+        routedRegistrations.put(input.getContext(), registration);
         return Futures.immediateFuture(RpcResultBuilder.<Void>success().build());
     }
 
@@ -454,15 +456,15 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
         if (idIntsListener == null || dtclReg == null) {
             final RpcError error = RpcResultBuilder.newError(
                     ErrorType.RPC, "Dtcl missing.", "No DataTreeChangeListener registered.");
-            return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDtclOutput>failed()
-                    .withRpcError(error).build());
+            return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDtclOutput>failed().withRpcError(error).build());
         }
 
         try {
             idIntsListener.tryFinishProcessing().get(120, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            final RpcError error = RpcResultBuilder.newError(ErrorType.RPC, "resource-denied-transport",
-                    "Unable to finish notification processing in 120 seconds.", "clustering-it", "clustering-it", e);
+            final RpcError error = RpcResultBuilder.newError(
+                    ErrorType.RPC, "resource-denied-transport", "Unable to finish notification processing in 120 seconds.",
+                    "clustering-it", "clustering-it", e);
             return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDtclOutput>failed()
                     .withRpcError(error).build());
         }
@@ -472,8 +474,8 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
 
         if (!idIntsListener.hasTriggered()) {
             final RpcError error = RpcResultBuilder.newError(
-                    ErrorType.APPLICATION, "No notification received.", "id-ints listener has not received"
-                            + "any notifications.");
+                    ErrorType.APPLICATION, "No notification received.", "id-ints listener has not received" +
+                            "any notifications.");
             return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDtclOutput>failed()
                     .withRpcError(error).build());
         }
@@ -520,17 +522,17 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
         LOG.debug("Received unsubscribe-ynl, input: {}", input);
 
         if (!ynlRegistrations.containsKey(input.getId())) {
-            final RpcError rpcError = RpcResultBuilder.newError(ErrorType.APPLICATION, "missing-registration",
-                    "No ynl listener with this id registered.");
+            final RpcError rpcError = RpcResultBuilder
+                    .newError(ErrorType.APPLICATION, "missing-registration", "No ynl listener with this id registered.");
             final RpcResult<UnsubscribeYnlOutput> result =
                     RpcResultBuilder.<UnsubscribeYnlOutput>failed().withRpcError(rpcError).build();
             return Futures.immediateFuture(result);
         }
 
-        final ListenerRegistration<YnlListener> reg = ynlRegistrations.remove(input.getId());
-        final UnsubscribeYnlOutput output = reg.getInstance().getOutput();
+        final ListenerRegistration<YnlListener> registration = ynlRegistrations.remove(input.getId());
+        final UnsubscribeYnlOutput output = registration.getInstance().getOutput();
 
-        reg.close();
+        registration.close();
 
         return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeYnlOutput>success().withResult(output).build());
     }
@@ -550,8 +552,10 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
                 new CheckPublishNotificationsOutputBuilder().setActive(!task.isFinished());
 
         if (task.getLastError() != null) {
-            LOG.error("Last error for {}", task, task.getLastError());
-            checkPublishNotificationsOutputBuilder.setLastError(task.getLastError().toString());
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw);
+            task.getLastError().printStackTrace(pw);
+            checkPublishNotificationsOutputBuilder.setLastError(task.getLastError().toString() + sw.toString());
         }
 
         final CheckPublishNotificationsOutput output =
@@ -662,22 +666,21 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
     }
 
     @Override
-    @SuppressWarnings("checkstyle:IllegalCatch")
     public Future<RpcResult<UnsubscribeDdtlOutput>> unsubscribeDdtl() {
         LOG.debug("Received unsubscribe-ddtl.");
 
         if (idIntsDdtl == null || ddtlReg == null) {
             final RpcError error = RpcResultBuilder.newError(
                     ErrorType.RPC, "Ddtl missing.", "No DOMDataTreeListener registered.");
-            return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDdtlOutput>failed()
-                    .withRpcError(error).build());
+            return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDdtlOutput>failed().withRpcError(error).build());
         }
 
         try {
             idIntsDdtl.tryFinishProcessing().get(120, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            final RpcError error = RpcResultBuilder.newError(ErrorType.RPC, "resource-denied-transport",
-                    "Unable to finish notification processing in 120 seconds.", "clustering-it", "clustering-it", e);
+            final RpcError error = RpcResultBuilder.newError(
+                    ErrorType.RPC, "resource-denied-transport", "Unable to finish notification processing in 120 seconds.",
+                    "clustering-it", "clustering-it", e);
             return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDdtlOutput>failed()
                     .withRpcError(error).build());
         }
@@ -687,8 +690,8 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
 
         if (!idIntsDdtl.hasTriggered()) {
             final RpcError error = RpcResultBuilder.newError(
-                    ErrorType.APPLICATION, "No notification received.", "id-ints listener has not received"
-                            + "any notifications.");
+                    ErrorType.APPLICATION, "No notification received.", "id-ints listener has not received" +
+                            "any notifications.");
             return Futures.immediateFuture(RpcResultBuilder.<UnsubscribeDdtlOutput>failed()
                     .withRpcError(error).build());
         }
@@ -706,7 +709,7 @@ public class MdsalLowLevelTestProvider implements OdlMdsalLowlevelControlService
         try {
             distributedDataStoreClient = SimpleDataStoreClientActor
                     .getDistributedDataStoreClient(clientActor, 30, TimeUnit.SECONDS);
-        } catch (RuntimeException e) {
+        } catch (final Exception e) {
             LOG.error("Failed to get actor for {}", distributedDataStoreClientProps, e);
             clientActor.tell(PoisonPill.getInstance(), noSender());
             final RpcError error = RpcResultBuilder.newError(

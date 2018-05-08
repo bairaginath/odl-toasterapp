@@ -4,9 +4,10 @@
     <parent>
         <groupId>org.opendaylight.controller.samples</groupId>
         <artifactId>sal-samples</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>1.6.2</version>
     </parent>
     <artifactId>clustering-it</artifactId>
+    <groupId>com.quantum.toaster</groupId>
     <packaging>pom</packaging>
   <modules>
     <module>configuration</module>
