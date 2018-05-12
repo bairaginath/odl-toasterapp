@@ -8,7 +8,7 @@ to get distribute-opendaylight-karaf , mvn clean install
 3) after install successfully, cd karaf/target/ and unzip karaf-0.7.2.zip 
 4) change .m2 repository location on odl-toasterapp/org.ops4j.pax.url.mvn.cfg
 4) cp odl-toasterapp/org.ops4j.pax.url.mvn.cfg odl-toasterapp/karaf/target/karaf-0.7.2/etc/
-5) cd odl-toasterapp
+5) cd odl-toasterapp and copy archetype-catalog.xml file into .m2 folder  
 6) mvn clean install
 7) run ODL-cli , odl-toasterapp/karaf/target/karaf-0.7.2/bin/karaf
 8) feature:install odl-restconf-all
