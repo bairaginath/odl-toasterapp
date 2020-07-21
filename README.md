@@ -13,6 +13,7 @@ wget https://nexus.opendaylight.org/content/repositories/public/org/opendaylight
 8) feature:install odl-restconf-all
 9) feature:install odl-mdsal-apidocs
 10) install feature repo as below
+
        feature:repo-add mvn:com.quantum.toaster/quantum-toaster/1.6.2/xml/features
 11) install feature ,  
        feature:install quantum-toaster
